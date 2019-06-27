@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -83,6 +82,33 @@ class TodoControllerTest {
         ResultActions result = mockMvc.perform(post("/todos/1", todo));
         //then
         verify(mockTodoRepository, times(1)).add(todo);
+    }
+
+    @Test
+    public void deleteOneTodoNotFound() throws Exception{
+        //given
+        Todo todo = null;
+        Optional<Todo> todoOptional = Optional.ofNullable(todo);
+        when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
+
+        //when
+        ResultActions result = mockMvc.perform(delete("/todos/1", todo));
+        //then
+        result.andExpect(status().isNotFound());
+
+    }
+    @Test
+    public void deleteOneTodo() throws Exception{
+        //given
+        Todo todo = new Todo();
+        Optional<Todo> todoOptional = Optional.of(todo);
+        when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
+
+        //when
+        ResultActions result = mockMvc.perform(delete("/todos/1", todo));
+        //then
+        verify(mockTodoRepository, times(1)).delete(todo);
+        result.andExpect(status().isOk());
     }
 }
 
