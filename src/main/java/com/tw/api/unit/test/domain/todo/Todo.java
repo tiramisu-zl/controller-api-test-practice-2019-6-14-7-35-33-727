@@ -92,4 +92,14 @@ public class Todo {
     private <T> T nonNull(T value, T defaultValue) {
         return value == null ? defaultValue : value;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\":" + id + "," +
+                "\"title\":\"" +  title + "\"," +
+                "\"completed\":" + completed + "," +
+                "\"order\":" + order +
+                "}";
+    }
 }

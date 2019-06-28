@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -76,12 +77,17 @@ class TodoControllerTest {
         //given
         List<Todo> todoList = new ArrayList<>();
         when(mockTodoRepository.getAll()).thenReturn(todoList);
-        Todo todo = new Todo();
+        Todo todo = new Todo("title", false);
 
         //when
-        ResultActions result = mockMvc.perform(post("/todos/1", todo));
+        ResultActions result = mockMvc.perform(post("/todos")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8")
+                .content(todo.toString()));
+
         //then
-        verify(mockTodoRepository, times(1)).add(todo);
+        result.andExpect(status().isCreated());
     }
 
     @Test
@@ -92,7 +98,7 @@ class TodoControllerTest {
         when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
 
         //when
-        ResultActions result = mockMvc.perform(delete("/todos/1", todo));
+        ResultActions result = mockMvc.perform(delete("/todos/1"));
         //then
         result.andExpect(status().isNotFound());
 
@@ -105,12 +111,56 @@ class TodoControllerTest {
         when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
 
         //when
-        ResultActions result = mockMvc.perform(delete("/todos/1", todo));
+        ResultActions result = mockMvc.perform(delete("/todos/1"));
         //then
         verify(mockTodoRepository, times(1)).delete(todo);
         result.andExpect(status().isOk());
     }
+
+
+    @Test
+    public void updateTodo() throws Exception{
+        //given
+        Todo todo = new Todo(1, "title", false, 1);
+        Optional<Todo> todoOptional = Optional.of(todo);
+        when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
+
+        //when
+        ResultActions result = mockMvc.perform(patch("/todos/1")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8")
+                .content(todo.toString()));
+
+        //then
+        result.andExpect(status().isOk());
+        verify(mockTodoRepository, times(1)).delete(todo);
+        verify(mockTodoRepository, times(1)).add(todo);
+    }
+
+    @Test
+    public void updateTodoByNull() throws Exception{
+        //given
+        Todo todo = new Todo(1, "title", false, 1);
+        Optional<Todo> todoOptional = Optional.ofNullable(null);
+        when(mockTodoRepository.findById(1)).thenReturn(todoOptional);
+
+
+        //when
+        ResultActions result = mockMvc.perform(patch("/todos/1")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8")
+                .content(todo.toString()));
+
+        //then
+        result.andExpect(status().isNotFound());
+    }
+
 }
 
 //这种测试和之前写的controller 测试的区别，
 //import 不同的依赖会直接影响测试能不能过
+// 415 或者不支持contentType
+// 400 参数错误
+// 405 方法不支持，

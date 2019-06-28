@@ -72,7 +72,9 @@ public class TodoController {
 
         if (!todoOptional.isPresent()) {
             return new ResponseEntity<>(NOT_FOUND);
-        } else if (newTodo == null) {
+        }
+        // 没必要，因为如果传的数据格式不能解析成Todo 根本不会到这来
+        else if (newTodo == null) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
 
